@@ -26,10 +26,8 @@ jobs:
       - name: Verify Maven installation
         run: mvn -version
 
-      # List files to verify the location of the Makefile
-      - name: List project files
-        run: ls -al .github/workflows
+      #
 
       # Run the Makefile located in the .github/workflows directory
-      - name: Run Makefile from .github/workflows directory
-        run: make -f .github/workflows/makefile.yml
+      - name: Run Makefile
+        run: make -f makefile.yml
