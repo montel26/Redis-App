@@ -36,7 +36,7 @@ public class PingResponderTest {
         String output = outputStream.toString();
 
         // Validate response
-        assertEquals("+PONG\r\n", output.trim());
+        assertEquals("+PONG\r\n", output);
     }
 
     @Test
@@ -48,7 +48,8 @@ public class PingResponderTest {
         OutputStream outputStream = mockSocket.getOutputStream();
         String output = outputStream.toString();
 
-        assertEquals("$5\r\nhello\r\n", output.trim());
+
+        assertEquals("$5\r\nhello\r\n", output);
     }
 }
 
