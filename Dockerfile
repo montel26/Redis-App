@@ -1,4 +1,4 @@
 FROM ubuntu:latest
-LABEL authors="wtc"
+LABEL authors="montel"
 
 ENTRYPOINT ["top", "-b"]

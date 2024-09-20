@@ -1,27 +1,33 @@
-name: Makefile CI
+# Variables
+  MAVEN = mvn
+  GIT = git
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+# Phony targets
+.PHONY: all clean compile verify check distcheck package
 
-jobs:
-  build:
+# Default target
+all: clean compile package
 
-    runs-on: ubuntu-latest
+# Clean build artifacts
+clean:
+  $(MAVEN) clean
 
-    steps:
-    - uses: actions/checkout@v4
+# Compile the code
+compile:
+  $(MAVEN) compile
 
-    - name: configure
-      run: ./configure
+# Verify the application
+verify:
+  $(MAVEN) verify
 
-    - name: Install dependencies
-      run: make
+# Run tests
+check:
+  $(MAVEN) test
 
-    - name: Run check
-      run: make check
+# Distcheck: package and verify everything is working for distribution
+distcheck: clean compile check package
+  @echo "All checks passed. Ready for distribution."
 
-    - name: Run distcheck
-      run: make distcheck
+# Package the application
+package:
+  $(MAVEN) package
