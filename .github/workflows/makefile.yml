@@ -1,33 +1,30 @@
-# Variables
-  MAVEN = mvn
-  GIT = git
+name: Makefile CI
 
-# Phony targets
-.PHONY: all clean compile verify check distcheck package
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
-# Default target
-all: clean compile package
+jobs:
+  build:
 
-# Clean build artifacts
-clean:
-  $(MAVEN) clean
+    runs-on: ubuntu-latest
 
-# Compile the code
-compile:
-  $(MAVEN) compile
+    steps:
+      - uses: actions/checkout@v4
 
-# Verify the application
-verify:
-  $(MAVEN) verify
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-# Run tests
-check:
-  $(MAVEN) test
+      - name: Install Maven
+        run: sudo apt-get install -y maven
 
-# Distcheck: package and verify everything is working for distribution
-distcheck: clean compile check package
-  @echo "All checks passed. Ready for distribution."
+      - name: Verify Maven installation
+        run: mvn -version
 
-# Package the application
-package:
-  $(MAVEN) package
+      - name: Run Makefile
+        run: make
