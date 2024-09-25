@@ -67,8 +67,9 @@ public class PingResponder implements ClientRequestHandler {
 
     // Method to handle the ECHO command
     private void handleEchoCommand(String[] arguments, OutputStream out) throws IOException {
-        if (arguments.length == 2) { // ECHO expects exactly one argument
+        if (arguments.length >= 1) { // ECHO expects exactly one argument
             String message = arguments[1];
+            System.out.println(message);
             System.out.println("Responding with ECHO: " + message);
             out.write(String.format("$%d\r\n%s\r\n", message.length(), message).getBytes());
         } else {
