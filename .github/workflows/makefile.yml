@@ -30,6 +30,6 @@ jobs:
       - name: List project files
         run: ls -al .github/workflows
 
-      # Run the actual Makefile if it exists in the root directory or any other directory
-#      - name: Run Makefile
-#        run: make -f path/to/your/Makefile
+      # Run the Makefile located in the .github/workflows directory
+      - name: Run Makefile from .github/workflows directory
+        run: make -f .github/workflows/makefile.yml
