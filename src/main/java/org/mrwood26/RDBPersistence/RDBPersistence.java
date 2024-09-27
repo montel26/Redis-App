@@ -1,48 +1,45 @@
 package org.mrwood26.RDBPersistence;
 
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+
 public class RDBPersistence {
     private String dir;
     private String dbfilename;
+    private Map<String, String> store = new HashMap<>();
 
     public RDBPersistence(String dir, String dbfilename) {
         this.dir = dir;
         this.dbfilename = dbfilename;
     }
 
-    public String getDir() {
-        return dir;
-    }
+    // Method to load the RDB file
+    public void loadRDBFile() throws IOException {
+        File file = new File(dir, dbfilename);
+        if (!file.exists()) {
+            System.out.println("RDB file does not exist. Skipping load.");
+            return;
+        }
 
-    public String getDbfilename() {
-        return dbfilename;
-    }
-    public String handleConfigGet(String parameter) {
-        if ("dir".equals(parameter)) {
-            return "*2\r\n$3\r\ndir\r\n$" + dir.length() + "\r\n" + dir + "\r\n";
-        } else if ("dbfilename".equals(parameter)) {
-            return "*2\r\n$9\r\ndbfilename\r\n$" + dbfilename.length() + "\r\n" + dbfilename + "\r\n";
-        } else {
-            return "-ERR unknown parameter\r\n";
+        try (DataInputStream dis = new DataInputStream(new FileInputStream(file))) {
+            // Example of parsing length-prefixed strings (not full RDB format)
+            int keyLength = dis.readUnsignedByte();  // Read key length
+            byte[] keyBytes = new byte[keyLength];
+            dis.readFully(keyBytes);
+            String key = new String(keyBytes);
+
+            int valueLength = dis.readUnsignedByte();  // Read value length
+            byte[] valueBytes = new byte[valueLength];
+            dis.readFully(valueBytes);
+            String value = new String(valueBytes);
+
+            store.put(key, value);  // Store in the in-memory map
         }
     }
-    public void handleCommand(String command) {
-        if (command.startsWith("CONFIG GET")) {
-            String[] parts = command.split(" ");
-            if (parts.length == 3) {
-                String response = handleConfigGet(parts[2]);
-                sendResponse(response);
-            } else {
-                sendResponse("-ERR wrong number of arguments for 'CONFIG GET' command\r\n");
-            }
-        } else {
-            sendResponse("-ERR unknown command\r\n");
-        }
+
+    public Map<String, String> getStore() {
+        return store;
     }
-//    *2\r\n$3\r\ndir\r\n$16\r\n/tmp/redis-files\r\n
-    private void sendResponse(String response) {
-        // Logic to send the response to the client
-    }
-
-
-
 }
+

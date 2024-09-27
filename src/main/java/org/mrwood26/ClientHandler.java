@@ -2,10 +2,14 @@ package org.mrwood26;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientHandler implements Runnable {
-    private Socket clientSocket;
-    private ClientRequestHandler requestHandler;
+    private static final Logger logger = Logger.getLogger(ClientHandler.class.getName());
+
+    private final Socket clientSocket;
+    private final ClientRequestHandler requestHandler;
 
     public ClientHandler(Socket clientSocket, ClientRequestHandler requestHandler) {
         this.clientSocket = clientSocket;
@@ -14,18 +18,11 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
-        try {
+        try (Socket socket = clientSocket) {
             // Use the request handler to handle the client's requests
-            requestHandler.handleRequest(clientSocket);
+            requestHandler.handleRequest(socket);
         } catch (IOException e) {
-            System.out.println("IOException in ClientHandler: " + e.getMessage());
-        } finally {
-            try {
-                // Ensure the client socket is closed when done
-                clientSocket.close();
-            } catch (IOException e) {
-                System.out.println("IOException while closing client socket: " + e.getMessage());
-            }
+            logger.log(Level.SEVERE, "IOException while handling client request: " + e.getMessage(), e);
         }
     }
 }

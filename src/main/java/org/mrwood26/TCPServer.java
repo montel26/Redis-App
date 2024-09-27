@@ -3,16 +3,18 @@ package org.mrwood26;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
 
 public class TCPServer {
     private int port;
+    private String dir;
+    private String dbfilename;
     private ClientRequestHandler requestHandler;
-    private volatile boolean running = true; // Flag to control server running state
+    private volatile boolean running = true;
 
-    public TCPServer(int port, ClientRequestHandler requestHandler) {
+    public TCPServer(int port, String dir, String dbfilename, ClientRequestHandler requestHandler) {
         this.port = port;
+        this.dir = dir;
+        this.dbfilename = dbfilename;
         this.requestHandler = requestHandler;
     }
 
@@ -27,11 +29,10 @@ public class TCPServer {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("Client connected!");
 
-                    // Handle each client in a separate thread
                     ClientHandler clientHandler = new ClientHandler(clientSocket, requestHandler);
                     new Thread(clientHandler).start();
-                } catch (SocketTimeoutException e) {
-                    // Handle timeout if needed
+                } catch (IOException e) {
+                    System.out.println("IOException in TCPServer: " + e.getMessage());
                 }
             }
         } catch (IOException e) {
@@ -40,9 +41,8 @@ public class TCPServer {
     }
 
     public void stop() {
-        running = false; // Set running to false to exit the loop
+        running = false;
     }
 }
-
 
 
