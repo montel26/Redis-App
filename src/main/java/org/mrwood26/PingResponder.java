@@ -1,14 +1,15 @@
 package org.mrwood26;
-
 import java.io.*;
 import java.net.Socket;
 import java.util.Map;
 
 public class PingResponder implements ClientRequestHandler {
     private final Map<String, String> store;
+    private final Map<String, Long> expiryTimes;
 
-    public PingResponder(Map<String, String> store) {
+    public PingResponder(Map<String, String> store, Map<String, Long> expiryTimes) {
         this.store = store;
+        this.expiryTimes = expiryTimes;
     }
 
     @Override
@@ -33,10 +34,12 @@ public class PingResponder implements ClientRequestHandler {
                 if (command.equals("GET") && arguments.length == 2) {
                     String key = arguments[1];
                     String value = store.get(key);
-                    if (value != null) {
+
+                    // Check if the key has expired
+                    if (value != null && !isExpired(key)) {
                         out.write(String.format("$%d\r\n%s\r\n", value.length(), value).getBytes());
                     } else {
-                        out.write("$-1\r\n".getBytes());  // Null bulk reply if key doesn't exist
+                        out.write("$-1\r\n".getBytes());  // Null bulk reply if key is expired or doesn't exist
                     }
                     out.flush();
                 } else {
@@ -45,5 +48,13 @@ public class PingResponder implements ClientRequestHandler {
                 }
             }
         }
+    }
+
+    private boolean isExpired(String key) {
+        Long expiryTime = expiryTimes.get(key);
+        if (expiryTime == null) {
+            return false; // No expiry set
+        }
+        return System.currentTimeMillis() > expiryTime;
     }
 }

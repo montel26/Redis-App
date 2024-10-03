@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -26,10 +25,9 @@ jobs:
       - name: Verify Maven installation
         run: mvn -version
 
-      # List files to verify the location of the Makefile
-      - name: List project files
-        run: ls -al .github/workflows
+      - name: List project files to verify the location of the Makefile
+        run: ls -al
 
-      # Run the Makefile located in the .github/workflows directory
-      - name: Run Makefile from .github/workflows directory
-        run: make -f .github/workflows/makefile.yml
+      # Run the actual Makefile located in the root (or adjust if in another location)
+      - name: Run Makefile
+        run: make

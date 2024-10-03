@@ -1,5 +1,4 @@
 package org.mrwood26;
-
 import java.util.HashMap;
 import java.util.Map;
 
