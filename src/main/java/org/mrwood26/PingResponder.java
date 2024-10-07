@@ -1,4 +1,5 @@
 package org.mrwood26;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.Map;
@@ -6,10 +7,16 @@ import java.util.Map;
 public class PingResponder implements ClientRequestHandler {
     private final Map<String, String> store;
     private final Map<String, Long> expiryTimes;
+    private final String role; // Either "master" or "slave"
+    private final String masterReplId; // 40-character replication ID
+    private final long masterReplOffset; // Replication offset
 
-    public PingResponder(Map<String, String> store, Map<String, Long> expiryTimes) {
+    public PingResponder(Map<String, String> store, Map<String, Long> expiryTimes, String role, String masterReplId, long masterReplOffset) {
         this.store = store;
         this.expiryTimes = expiryTimes;
+        this.role = role;  // Initialize with role
+        this.masterReplId = masterReplId;  // Initialize with master replication ID
+        this.masterReplOffset = masterReplOffset;  // Initialize with replication offset
     }
 
     @Override
@@ -31,15 +38,22 @@ public class PingResponder implements ClientRequestHandler {
                 }
 
                 String command = arguments[0].toUpperCase();
-                if (command.equals("GET") && arguments.length == 2) {
+
+                if (command.equals("INFO") && arguments.length == 2 && arguments[1].equalsIgnoreCase("replication")) {
+                    // Respond to INFO replication command with role, masterReplId, and masterReplOffset
+                    String infoResponse = String.format("role:%s\r\nmaster_replid:%s\r\nmaster_repl_offset:%d\r\n", role, masterReplId, masterReplOffset);
+                    String bulkStringResponse = String.format("$%d\r\n%s", infoResponse.length(), infoResponse);
+                    out.write(bulkStringResponse.getBytes());
+                    out.flush();
+                } else if (command.equals("GET") && arguments.length == 2) {
+                    // Handle GET command
                     String key = arguments[1];
                     String value = store.get(key);
 
-                    // Check if the key has expired
                     if (value != null && !isExpired(key)) {
                         out.write(String.format("$%d\r\n%s\r\n", value.length(), value).getBytes());
                     } else {
-                        out.write("$-1\r\n".getBytes());  // Null bulk reply if key is expired or doesn't exist
+                        out.write("$-1\r\n".getBytes());
                     }
                     out.flush();
                 } else {
@@ -52,9 +66,6 @@ public class PingResponder implements ClientRequestHandler {
 
     private boolean isExpired(String key) {
         Long expiryTime = expiryTimes.get(key);
-        if (expiryTime == null) {
-            return false; // No expiry set
-        }
-        return System.currentTimeMillis() > expiryTime;
+        return expiryTime != null && System.currentTimeMillis() > expiryTime;
     }
 }
